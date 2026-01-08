@@ -68,7 +68,7 @@ export default function DashboardPage() {
   // Fetch dashboard data
   const { data: dashboard, isLoading, error } = useQuery<DashboardData>({
     queryKey: ['dashboard', 'tenant', effectiveTenantId],
-    queryFn: () => api.getTenantDashboard(effectiveTenantId || undefined) as Promise<DashboardData>,
+    queryFn: () => api.getTenantDashboard(effectiveTenantId) as Promise<DashboardData>,
     enabled: !!user && (!!user.tenantId || (user?.role === 'system_admin' && !!selectedTenantId)),
     retry: false,
   });

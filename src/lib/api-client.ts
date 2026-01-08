@@ -53,10 +53,6 @@ export type Site = {
   tenantId: string;
   createdAt: string;
   updatedAt: string;
-  tenant?: {
-    id: string;
-    name: string;
-  };
   meters?: Array<{
     id: string;
     name: string;
@@ -75,10 +71,6 @@ export type Meter = {
   site?: {
     id: string;
     name: string;
-    tenant?: {
-      id: string;
-      name: string;
-    };
   };
 };
 
@@ -88,18 +80,6 @@ export type Reading = {
   timestamp: string;
   value: number;
   createdAt: string;
-  meter?: {
-    id: string;
-    name: string;
-    site?: {
-      id: string;
-      name: string;
-      tenant?: {
-        id: string;
-        name: string;
-      };
-    };
-  };
 };
 
 export type Alert = {
@@ -112,10 +92,6 @@ export type Alert = {
     id: string;
     name: string;
     tenantId: string;
-    tenant?: {
-      id: string;
-      name: string;
-    };
   };
 };
 
@@ -125,10 +101,6 @@ export type SeriesPoint = {
 };
 
 export type TenantDashboard = {
-  tenant: {
-    id: string;
-    name: string;
-  } | null;
   totalByDay: SeriesPoint[];
   topSites: Array<{
     siteId: string;
@@ -140,10 +112,6 @@ export type TenantDashboard = {
 };
 
 export type SiteDashboard = {
-  tenant: {
-    id: string;
-    name: string;
-  } | null;
   site: {
     id: string;
     name: string;
@@ -199,11 +167,6 @@ export type CreateReadingDto = {
   meterId: string;
   timestamp: string;
   value: number;
-};
-
-export type UpdateReadingDto = {
-  timestamp?: string;
-  value?: number;
 };
 
 async function apiRequest<T>(
@@ -304,15 +267,6 @@ export const api = {
     apiRequest<Reading>('/api/readings', {
       method: 'POST',
       body: JSON.stringify(data),
-    }),
-  updateReading: (id: string, data: UpdateReadingDto) =>
-    apiRequest<Reading>(`/api/readings/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    }),
-  deleteReading: (id: string) =>
-    apiRequest<Reading>(`/api/readings/${id}`, {
-      method: 'DELETE',
     }),
 
   // Dashboard
