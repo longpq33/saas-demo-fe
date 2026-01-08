@@ -201,6 +201,11 @@ export type CreateReadingDto = {
   value: number;
 };
 
+export type UpdateReadingDto = {
+  timestamp?: string;
+  value?: number;
+};
+
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
@@ -299,6 +304,15 @@ export const api = {
     apiRequest<Reading>('/api/readings', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+  updateReading: (id: string, data: UpdateReadingDto) =>
+    apiRequest<Reading>(`/api/readings/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  deleteReading: (id: string) =>
+    apiRequest<Reading>(`/api/readings/${id}`, {
+      method: 'DELETE',
     }),
 
   // Dashboard

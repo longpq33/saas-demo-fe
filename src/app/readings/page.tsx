@@ -14,8 +14,9 @@ import {
   Space,
   Card,
   Alert,
+  Popconfirm,
 } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/lib/auth-context';
@@ -29,6 +30,7 @@ dayjs.extend(customParseFormat);
 
 export default function ReadingsPage() {
   const [formOpen, setFormOpen] = useState(false);
+  const [editingReading, setEditingReading] = useState<any>(null);
   const [selectedMeter, setSelectedMeter] = useState<string | undefined>();
   const [dateRange, setDateRange] = useState<[string, string] | undefined>();
   const [form] = Form.useForm();
@@ -67,6 +69,7 @@ export default function ReadingsPage() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setFormOpen(false);
       form.resetFields();
+      setEditingReading(null);
       message.success('Tạo reading thành công');
     },
     onError: (error: any) => {
@@ -74,10 +77,48 @@ export default function ReadingsPage() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      api.updateReading(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['readings'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      setFormOpen(false);
+      setEditingReading(null);
+      form.resetFields();
+      message.success('Cập nhật reading thành công');
+    },
+    onError: (error: any) => {
+      message.error(error.message || 'Cập nhật reading thất bại');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.deleteReading(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['readings'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      message.success('Xóa reading thành công');
+    },
+    onError: (error: any) => {
+      message.error(error.message || 'Xóa reading thất bại');
+    },
+  });
+
   const canCreate =
     user?.role === 'system_admin' ||
     user?.role === 'customer_admin' ||
     user?.role === 'operator';
+
+  const handleEdit = (reading: any) => {
+    setEditingReading(reading);
+    form.setFieldsValue({
+      meterId: reading.meterId,
+      timestamp: dayjs(reading.timestamp),
+      value: reading.value,
+    });
+    setFormOpen(true);
+  };
 
   const columns = [
     {
@@ -103,13 +144,45 @@ export default function ReadingsPage() {
       key: 'createdAt',
       render: (text: string) => dayjs(text).format('DD/MM/YYYY HH:mm'),
     },
+    {
+      title: 'Hành động',
+      key: 'action',
+      render: (_: any, record: any) => (
+        <Space>
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+            size="small"
+          >
+            Sửa
+          </Button>
+          <Popconfirm
+            title="Bạn có chắc muốn xóa reading này?"
+            onConfirm={() => deleteMutation.mutate(record.id)}
+          >
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              size="small"
+            >
+              Xóa
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
   ];
 
   const handleSubmit = (values: any) => {
-    createMutation.mutate({
+    const submitData = {
       ...values,
       timestamp: dayjs(values.timestamp).toISOString(),
-    });
+    };
+    if (editingReading) {
+      updateMutation.mutate({ id: editingReading.id, data: submitData });
+    } else {
+      createMutation.mutate(submitData);
+    }
   };
 
   return (
@@ -136,7 +209,11 @@ export default function ReadingsPage() {
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
-                onClick={() => setFormOpen(true)}
+                onClick={() => {
+                  setEditingReading(null);
+                  form.resetFields();
+                  setFormOpen(true);
+                }}
               >
                 Nhập Reading Mới
               </Button>
@@ -176,14 +253,15 @@ export default function ReadingsPage() {
 
         {canCreate && (
           <Modal
-            title="Nhập Reading Mới"
+            title={editingReading ? 'Sửa Reading' : 'Nhập Reading Mới'}
             open={formOpen}
             onCancel={() => {
               setFormOpen(false);
+              setEditingReading(null);
               form.resetFields();
             }}
             onOk={() => form.submit()}
-            confirmLoading={createMutation.isPending}
+            confirmLoading={createMutation.isPending || updateMutation.isPending}
           >
             <Form form={form} onFinish={handleSubmit} layout="vertical">
               <Form.Item
@@ -191,7 +269,10 @@ export default function ReadingsPage() {
                 label="Meter"
                 rules={[{ required: true, message: 'Vui lòng chọn meter' }]}
               >
-                <Select placeholder="Chọn meter">
+                <Select
+                  placeholder="Chọn meter"
+                  disabled={!!editingReading}
+                >
                   {meters?.map((meter: any) => (
                     <Select.Option key={meter.id} value={meter.id}>
                       {meter.name} ({meter.siteId})
