@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -118,10 +119,10 @@ export default function MetersPage() {
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 200,
+      title: 'STT',
+      key: 'stt',
+      width: 80,
+      render: (_: unknown, __: unknown, index: number) => index + 1,
     },
     {
       title: 'Tên',
@@ -154,9 +155,7 @@ export default function MetersPage() {
                 icon={<EditOutlined />}
                 onClick={() => handleEdit(record)}
                 size="small"
-              >
-                Sửa
-              </Button>
+              />
               <Popconfirm
                 title="Bạn có chắc muốn xóa meter này?"
                 onConfirm={() => deleteMutation.mutate(record.id)}
@@ -165,9 +164,7 @@ export default function MetersPage() {
                   danger
                   icon={<DeleteOutlined />}
                   size="small"
-                >
-                  Xóa
-                </Button>
+                />
               </Popconfirm>
             </>
           )}

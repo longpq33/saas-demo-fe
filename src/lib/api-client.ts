@@ -95,6 +95,28 @@ export type Alert = {
   };
 };
 
+export type PredictiveAlert = {
+  id: string;
+  siteId: string;
+  message: string;
+  level: AlertLevel;
+  predictedDate: string;
+  confidence: number;
+  trend: 'increasing' | 'decreasing' | 'stable';
+  expectedValue: number;
+  createdAt: string;
+  expiresAt: string;
+  site?: {
+    id: string;
+    name: string;
+    tenantId: string;
+    tenant?: {
+      id: string;
+      name: string;
+    };
+  };
+};
+
 export type SeriesPoint = {
   date: string;
   value: number;
@@ -167,6 +189,11 @@ export type CreateReadingDto = {
   meterId: string;
   timestamp: string;
   value: number;
+};
+
+export type UpdateReadingDto = {
+  timestamp?: string;
+  value?: number;
 };
 
 async function apiRequest<T>(
@@ -268,6 +295,15 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  updateReading: (id: string, data: UpdateReadingDto) =>
+    apiRequest<Reading>(`/api/readings/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  deleteReading: (id: string) =>
+    apiRequest<Reading>(`/api/readings/${id}`, {
+      method: 'DELETE',
+    }),
 
   // Dashboard
   getTenantDashboard: (tenantId?: string) => {
@@ -283,6 +319,20 @@ export const api = {
   getAlerts: () => apiRequest<Alert[]>('/api/alerts'),
   recomputeAlerts: () =>
     apiRequest<{ created: number }>('/api/alerts/recompute', {
+      method: 'POST',
+    }),
+
+  // Predictive Alerts
+  getPredictiveAlerts: () =>
+    apiRequest<PredictiveAlert[]>('/api/alerts/predictive'),
+  recomputePredictiveAlerts: () =>
+    apiRequest<{
+      created: number;
+      totalSites: number;
+      processedSites: number;
+      sitesWithInsufficientData: number;
+      sitesWithAlerts: number;
+    }>('/api/alerts/predictive/recompute', {
       method: 'POST',
     }),
 };

@@ -6,7 +6,6 @@ import {
   Button,
   Modal,
   Form,
-  Input,
   DatePicker,
   InputNumber,
   Select,
@@ -18,7 +17,7 @@ import {
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api-client';
+import { api, type CreateReadingDto, type UpdateReadingDto, type Reading, type Meter } from '@/lib/api-client';
 import { useAuth } from '@/lib/auth-context';
 import { AppLayout } from '@/components/Layout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -30,14 +29,13 @@ dayjs.extend(customParseFormat);
 
 export default function ReadingsPage() {
   const [formOpen, setFormOpen] = useState(false);
-  const [editingReading, setEditingReading] = useState<any>(null);
+  const [editingReading, setEditingReading] = useState<Reading | null>(null);
   const [selectedMeter, setSelectedMeter] = useState<string | undefined>();
-  const [dateRange, setDateRange] = useState<[string, string] | undefined>();
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const { data: meters } = useQuery({
+  const { data: meters } = useQuery<Meter[]>({
     queryKey: ['meters'],
     queryFn: () => api.getMeters(),
   });
@@ -47,23 +45,20 @@ export default function ReadingsPage() {
     if (meters && meters.length > 0 && !selectedMeter) {
       setSelectedMeter(meters[0].id);
     }
-  }, [meters, selectedMeter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meters]);
 
-  const { data: readings, isLoading, error } = useQuery({
-    queryKey: ['readings', selectedMeter, dateRange],
+  const { data: readings, isLoading, error } = useQuery<Reading[]>({
+    queryKey: ['readings', selectedMeter],
     queryFn: () => {
       if (!selectedMeter) return Promise.resolve([]);
-      return api.getReadings(
-        selectedMeter,
-        dateRange?.[0],
-        dateRange?.[1],
-      );
+      return api.getReadings(selectedMeter);
     },
     enabled: !!selectedMeter,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => api.createReading(data),
+    mutationFn: (data: CreateReadingDto) => api.createReading(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['readings'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -72,15 +67,17 @@ export default function ReadingsPage() {
       setEditingReading(null);
       message.success('Tạo reading thành công');
     },
-    onError: (error: any) => {
-      message.error(error.message || 'Tạo reading thất bại');
+    onError: (error: unknown) => {
+      const messageText = error instanceof Error ? error.message : 'Tạo reading thất bại';
+      message.error(messageText);
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdateReadingDto }) =>
       api.updateReading(id, data),
     onSuccess: () => {
+      // Invalidate all readings queries to refresh the list
       queryClient.invalidateQueries({ queryKey: ['readings'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setFormOpen(false);
@@ -88,20 +85,23 @@ export default function ReadingsPage() {
       form.resetFields();
       message.success('Cập nhật reading thành công');
     },
-    onError: (error: any) => {
-      message.error(error.message || 'Cập nhật reading thất bại');
+    onError: (error: unknown) => {
+      const messageText = error instanceof Error ? error.message : 'Cập nhật reading thất bại';
+      message.error(messageText);
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.deleteReading(id),
     onSuccess: () => {
+      // Invalidate all readings queries to refresh the list
       queryClient.invalidateQueries({ queryKey: ['readings'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       message.success('Xóa reading thành công');
     },
-    onError: (error: any) => {
-      message.error(error.message || 'Xóa reading thất bại');
+    onError: (error: unknown) => {
+      const messageText = error instanceof Error ? error.message : 'Xóa reading thất bại';
+      message.error(messageText);
     },
   });
 
@@ -110,7 +110,7 @@ export default function ReadingsPage() {
     user?.role === 'customer_admin' ||
     user?.role === 'operator';
 
-  const handleEdit = (reading: any) => {
+  const handleEdit = (reading: Reading) => {
     setEditingReading(reading);
     form.setFieldsValue({
       meterId: reading.meterId,
@@ -122,9 +122,21 @@ export default function ReadingsPage() {
 
   const columns = [
     {
-      title: 'Meter ID',
-      dataIndex: 'meterId',
-      key: 'meterId',
+      title: 'STT',
+      key: 'stt',
+      width: 80,
+      render: (_: unknown, __: unknown, index: number) => index + 1,
+    },
+    {
+      title: 'Tên Meter',
+      key: 'meterName',
+      render: (_: unknown, record: Reading) => {
+        const meter = meters?.find((m: Meter) => m.id === record.meterId);
+        if (meter) {
+          return meter.name;
+        }
+        return record.meterId || 'N/A';
+      },
     },
     {
       title: 'Thời gian',
@@ -147,15 +159,13 @@ export default function ReadingsPage() {
     {
       title: 'Hành động',
       key: 'action',
-      render: (_: any, record: any) => (
+      render: (_: unknown, record: Reading) => (
         <Space>
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
             size="small"
-          >
-            Sửa
-          </Button>
+          />
           <Popconfirm
             title="Bạn có chắc muốn xóa reading này?"
             onConfirm={() => deleteMutation.mutate(record.id)}
@@ -164,24 +174,22 @@ export default function ReadingsPage() {
               danger
               icon={<DeleteOutlined />}
               size="small"
-            >
-              Xóa
-            </Button>
+            />
           </Popconfirm>
         </Space>
       ),
     },
   ];
 
-  const handleSubmit = (values: any) => {
+  const handleSubmit = (values: { meterId: string; timestamp: dayjs.Dayjs; value: number }) => {
     const submitData = {
       ...values,
       timestamp: dayjs(values.timestamp).toISOString(),
     };
     if (editingReading) {
-      updateMutation.mutate({ id: editingReading.id, data: submitData });
+      updateMutation.mutate({ id: editingReading.id, data: submitData as UpdateReadingDto });
     } else {
-      createMutation.mutate(submitData);
+      createMutation.mutate(submitData as CreateReadingDto);
     }
   };
 
@@ -198,7 +206,7 @@ export default function ReadingsPage() {
                 onChange={setSelectedMeter}
                 value={selectedMeter}
               >
-                {meters?.map((meter: any) => (
+                {meters?.map((meter: Meter) => (
                   <Select.Option key={meter.id} value={meter.id}>
                     {meter.name} ({meter.siteId})
                   </Select.Option>
@@ -273,7 +281,7 @@ export default function ReadingsPage() {
                   placeholder="Chọn meter"
                   disabled={!!editingReading}
                 >
-                  {meters?.map((meter: any) => (
+                  {meters?.map((meter: Meter) => (
                     <Select.Option key={meter.id} value={meter.id}>
                       {meter.name} ({meter.siteId})
                     </Select.Option>

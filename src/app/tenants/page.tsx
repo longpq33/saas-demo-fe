@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -9,10 +10,9 @@ import {
   Input,
   message,
   Space,
-  Popconfirm,
   Tag,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { AppLayout } from '@/components/Layout';
@@ -73,10 +73,10 @@ export default function TenantsPage() {
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 200,
+      title: 'STT',
+      key: 'stt',
+      width: 80,
+      render: (_: unknown, __: unknown, index: number) => index + 1,
     },
     {
       title: 'Tên',
@@ -105,9 +105,7 @@ export default function TenantsPage() {
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
             size="small"
-          >
-            Sửa
-          </Button>
+          />
         </Space>
       ),
     },

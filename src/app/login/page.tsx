@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Form, Input, Button, Card, message, Typography } from 'antd';
 import { useAuth } from '@/lib/auth-context';
 import styled from 'styled-components';
@@ -24,7 +24,6 @@ const LoginCard = styled(Card)`
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const router = useRouter();
 
   const onFinish = async (values: { email: string; password: string }) => {
     try {
