@@ -1,0 +1,47 @@
+/* Force enable pointer events for Leaflet map */
+.leaflet-container {
+  pointer-events: auto !important;
+  cursor: grab !important;
+  touch-action: pan-x pan-y !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+.leaflet-container.leaflet-grab {
+  cursor: grab !important;
+}
+
+.leaflet-container.leaflet-dragging {
+  cursor: grabbing !important;
+}
+
+/* Ensure map panes can be transformed - DO NOT force transform to 0,0,0 */
+.leaflet-pane {
+  pointer-events: auto !important;
+}
+
+.leaflet-map-pane {
+  pointer-events: auto !important;
+  will-change: transform !important;
+  /* Let Leaflet control the transform */
+}
+
+.leaflet-tile-pane {
+  pointer-events: auto !important;
+}
+
+/* Custom site marker styles */
+.custom-site-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.leaflet-popup-content {
+  margin: 12px;
+}
+

@@ -99,10 +99,17 @@ export default function SitesPage() {
   };
 
   const handleSubmit = (values: any) => {
+    // Convert latitude and longitude to numbers if they exist
+    const processedValues = {
+      ...values,
+      latitude: values.latitude ? Number(values.latitude) : undefined,
+      longitude: values.longitude ? Number(values.longitude) : undefined,
+    };
+    
     if (editingSite) {
-      updateMutation.mutate({ id: editingSite.id, data: values });
+      updateMutation.mutate({ id: editingSite.id, data: processedValues });
     } else {
-      createMutation.mutate(values);
+      createMutation.mutate(processedValues);
     }
   };
 
@@ -223,6 +230,83 @@ export default function SitesPage() {
               </Form.Item>
               <Form.Item name="address" label="Địa chỉ">
                 <Input.TextArea />
+              </Form.Item>
+              <Form.Item
+                label="Tọa độ"
+                style={{ marginBottom: 8 }}
+              >
+                <Space.Compact style={{ width: '100%' }}>
+                  <Form.Item
+                    name="latitude"
+                    noStyle
+                    rules={[
+                      {
+                        validator: (_, value) => {
+                          if (!value) return Promise.resolve();
+                          const num = Number(value);
+                          if (isNaN(num) || num < -90 || num > 90) {
+                            return Promise.reject(new Error('Latitude phải từ -90 đến 90'));
+                          }
+                          return Promise.resolve();
+                        },
+                      },
+                    ]}
+                  >
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="Latitude (-90 đến 90)"
+                      style={{ width: '50%' }}
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    name="longitude"
+                    noStyle
+                    rules={[
+                      {
+                        validator: (_, value) => {
+                          if (!value) return Promise.resolve();
+                          const num = Number(value);
+                          if (isNaN(num) || num < -180 || num > 180) {
+                            return Promise.reject(new Error('Longitude phải từ -180 đến 180'));
+                          }
+                          return Promise.resolve();
+                        },
+                      },
+                    ]}
+                  >
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="Longitude (-180 đến 180)"
+                      style={{ width: '50%' }}
+                    />
+                  </Form.Item>
+                </Space.Compact>
+              </Form.Item>
+              <Form.Item
+                style={{ marginBottom: 0, fontSize: '12px', color: '#999' }}
+              >
+                <div>
+                  <p style={{ margin: 0, fontSize: '12px' }}>
+                    💡 Tọa độ là tùy chọn. Bạn có thể tìm tọa độ tại{' '}
+                    <a
+                      href="https://www.google.com/maps"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Google Maps
+                    </a>
+                    {' '}hoặc{' '}
+                    <a
+                      href="https://www.openstreetmap.org"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      OpenStreetMap
+                    </a>
+                  </p>
+                </div>
               </Form.Item>
               {user?.role === 'system_admin' && (
                 <Form.Item name="tenantId" label="Tenant">

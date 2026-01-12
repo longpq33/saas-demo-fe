@@ -1,6 +1,6 @@
 'use client';
 
-import { Layout as AntLayout, Menu, Button, Dropdown, Avatar } from 'antd';
+import { Layout as AntLayout, Menu, Dropdown, Avatar } from 'antd';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import {
@@ -12,6 +12,7 @@ import {
   BankOutlined,
   LogoutOutlined,
   UserOutlined,
+  EnvironmentOutlined,
 } from '@ant-design/icons';
 import styled from 'styled-components';
 
@@ -82,6 +83,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       key: '/alerts',
       icon: <AlertOutlined />,
       label: 'Alerts',
+    },
+    {
+      key: '/map',
+      icon: <EnvironmentOutlined />,
+      label: 'Map',
     },
   ];
 

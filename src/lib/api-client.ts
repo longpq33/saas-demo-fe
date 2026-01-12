@@ -50,6 +50,8 @@ export type Site = {
   name: string;
   type: string | null;
   address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   tenantId: string;
   createdAt: string;
   updatedAt: string;
@@ -163,6 +165,8 @@ export type CreateSiteDto = {
   name: string;
   type?: string;
   address?: string;
+  latitude?: number;
+  longitude?: number;
   tenantId?: string;
 };
 
@@ -170,6 +174,8 @@ export type UpdateSiteDto = {
   name?: string;
   type?: string;
   address?: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 export type CreateMeterDto = {
