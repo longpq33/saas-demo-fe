@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import '@ant-design/v5-patch-for-react-19';
+import { ConfigProvider } from "antd";
+import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "./globals.css";
 import StyledComponentsRegistry from "../lib/styled-components-registry";
 import Providers from "./providers";
@@ -25,12 +28,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <StyledComponentsRegistry>
-          <Providers>{children}</Providers>
-        </StyledComponentsRegistry>
-      </body>
-    </html>
+    <AntdRegistry>
+        <html lang="en">
+          <body className={`${geistSans.variable} ${geistMono.variable}`}>
+          <StyledComponentsRegistry>
+            <Providers>{children}</Providers>
+            </StyledComponentsRegistry>
+          </body>
+        </html>
+    </AntdRegistry>
   );
 }

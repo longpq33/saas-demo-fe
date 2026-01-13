@@ -210,6 +210,22 @@ export default function SitesPage() {
             confirmLoading={createMutation.isPending || updateMutation.isPending}
           >
             <Form form={form} onFinish={handleSubmit} layout="vertical">
+              {user?.role === 'system_admin' && (
+                <Form.Item name="tenantId" label="Tenant">
+                  <Select
+                    placeholder="Chọn tenant"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={tenants?.map((tenant) => ({
+                      label: tenant.name,
+                      value: tenant.id,
+                    }))}
+                    loading={!tenants}
+                  />
+                </Form.Item>
+              )}
               <Form.Item
                 name="name"
                 label="Tên"
@@ -308,22 +324,7 @@ export default function SitesPage() {
                   </p>
                 </div>
               </Form.Item>
-              {user?.role === 'system_admin' && (
-                <Form.Item name="tenantId" label="Tenant">
-                  <Select
-                    placeholder="Chọn tenant"
-                    showSearch
-                    filterOption={(input, option) =>
-                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                    }
-                    options={tenants?.map((tenant) => ({
-                      label: tenant.name,
-                      value: tenant.id,
-                    }))}
-                    loading={!tenants}
-                  />
-                </Form.Item>
-              )}
+              
             </Form>
           </Modal>
         )}

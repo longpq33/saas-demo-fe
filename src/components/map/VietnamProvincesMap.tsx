@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/preserve-manual-memoization */
 'use client';
 
 import { useState, useMemo, useRef } from 'react';
@@ -7,16 +8,21 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './map.css';
 import { MAP_CONFIG, PROVINCE_STYLE } from './constants';
-import { useGeoJSONData, useMapContainerCleanup, useSitesData } from './hooks';
-import { MapLoadingState, MapBounds, MetersMarkerGroup } from './components';
+import { useGeoJSONData, useMapContainerCleanup } from './hooks';
+import { MapLoadingState, MapBounds } from './components';
 import { getProvinceName } from './utils';
 import './leaflet-setup';
-export default function VietnamProvincesMap() {
+export default function VietnamProvincesMap({
+  children,
+  disableHover = false,
+}: {
+  children: React.ReactNode;
+  disableHover?: boolean;
+}) {
   const [isMounted] = useState(() => typeof window !== 'undefined');
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
   const { geoData } = useGeoJSONData(isMounted);
-  const { sites, loading: sitesLoading } = useSitesData(isMounted);
   
   // Derive render state from data availability - no need for separate state
   const shouldRenderMap = useMemo(() => {
@@ -41,7 +47,13 @@ export default function VietnamProvincesMap() {
   }, []);
 
   // Event handlers - stable reference
+  // Nếu disableHover=true, return empty function để không bind tooltip/hover
   const onEachFeature = useMemo(() => {
+    if (disableHover) {
+      // Return empty function - không làm gì cả
+      return () => {};
+    }
+
     return (feature: Feature, layer: L.Layer) => {
       const provinceName = getProvinceName(feature.properties || {});
       
@@ -65,7 +77,7 @@ export default function VietnamProvincesMap() {
         },
       });
     };
-  }, [hoverStyle]);
+  }, [hoverStyle, disableHover]);
 
   if (!isMounted) {
     return <MapLoadingState message="Đang tải bản đồ..." />;
@@ -85,7 +97,7 @@ export default function VietnamProvincesMap() {
         center={MAP_CONFIG.DEFAULT_CENTER}
         zoom={MAP_CONFIG.DEFAULT_ZOOM}
         style={{ 
-          height: 600, 
+          height: 650, 
           width: '100%', 
           background: "#fff", 
         }}
@@ -98,6 +110,7 @@ export default function VietnamProvincesMap() {
         maxZoom={MAP_CONFIG.MAX_ZOOM}
         scrollWheelZoom={true}
         preferCanvas={true}
+        attributionControl={false}
       >
         <MapBounds geoData={geoData} />
         {geoData && (
@@ -105,10 +118,10 @@ export default function VietnamProvincesMap() {
             data={geoData}
             style={getStyle}
             onEachFeature={onEachFeature}
-            interactive={true}
+            interactive={!disableHover}
           />
         )}
-        {!sitesLoading && sites.length > 0 && <MetersMarkerGroup sites={sites} />}
+        {children}
       </MapContainer>
   );
 }

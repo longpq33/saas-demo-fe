@@ -7,7 +7,7 @@ export const MAP_CONFIG = {
   DEFAULT_ZOOM: 6,
   MIN_ZOOM: 5,
   MAX_ZOOM: 10,
-  HEIGHT: '600px',
+  HEIGHT: '650px',
   BOUNDS_PADDING: [50, 50] as [number, number],
 } as const;
 
@@ -48,6 +48,31 @@ export const MARKER_CONFIG = {
     default: '#3388ff',
     withMeters: '#ff6b6b',
     multipleMeters: '#4ecdc4',
+  },
+} as const;
+
+export const POWER_GRID_CONFIG = {
+  nodeColors: {
+    SUBSTATION: '#FF4444',
+    DISTRIBUTION_POINT: '#4488FF',
+    LOAD: '#FFAA00',
+    TRANSFORMER: '#8844FF',
+  },
+  nodeSizes: {
+    SUBSTATION: 24,
+    DISTRIBUTION_POINT: 20,
+    LOAD: 16,
+    TRANSFORMER: 22,
+  },
+  lineColors: {
+    ACTIVE: '#00AA00',
+    INACTIVE: '#888888',
+    FAULT: '#FF0000',
+  },
+  statusColors: {
+    ACTIVE: '#00AA00',
+    INACTIVE: '#888888',
+    MAINTENANCE: '#FFAA00',
   },
 } as const;
 

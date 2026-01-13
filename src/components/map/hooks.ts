@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, type RefObject } from 'react';
 import { GEOJSON_PATHS } from './constants';
 import { cleanupLeafletMap } from './utils';
-import { api, type Site } from '@/lib/api-client';
+import { api, type Site, type PowerGrid } from '@/lib/api-client';
 
 // ============================================================================
 // Custom Hooks
@@ -102,4 +102,55 @@ export function useSitesData(isMounted: boolean) {
 
   return { sites, loading, error };
 }
+
+/**
+ * Hook to load power grid data
+ */
+export function usePowerGridData(isMounted: boolean, pollingInterval?: number) {
+  const [grid, setGrid] = useState<PowerGrid | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const loadPowerGrid = async () => {
+      try {
+        setLoading(true);
+        const data = await api.getPowerGridState();
+        setGrid(data);
+        setError(null);
+      } catch (fetchError) {
+        const error =
+          fetchError instanceof Error
+            ? fetchError
+            : new Error('Failed to load power grid data');
+        console.error('Error fetching power grid:', error);
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPowerGrid();
+
+    // Setup polling if interval is provided
+    let intervalId: NodeJS.Timeout | null = null;
+    if (pollingInterval && pollingInterval > 0) {
+      intervalId = setInterval(loadPowerGrid, pollingInterval);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isMounted, pollingInterval]);
+
+  return { grid, loading, error };
+}
+
+// Re-export power grid hooks
+export { useTenants } from './power-grid/power-grid-hooks';
+export type { Tenant } from './power-grid/power-grid-hooks';
 

@@ -37,6 +37,12 @@
   border: none !important;
 }
 
+/* Custom power node marker styles */
+.custom-power-node-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
 .leaflet-popup-content-wrapper {
   border-radius: 8px;
 }

@@ -119,6 +119,94 @@ export type PredictiveAlert = {
   };
 };
 
+// Power Grid Types
+export type NodeType =
+  | 'SUBSTATION'
+  | 'TRANSFORMER'
+  | 'DISTRIBUTION_POINT'
+  | 'LOAD';
+
+export type LineStatus = 'ACTIVE' | 'INACTIVE' | 'FAULT';
+export type NodeStatus = 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
+export type SimulationStatus = 'STOPPED' | 'RUNNING' | 'PAUSED';
+
+export type PowerNode = {
+  id: string;
+  name: string;
+  code: string;
+  type: NodeType;
+  voltage: number; // kV
+  capacity: number; // MW
+  latitude: number;
+  longitude: number;
+  status: NodeStatus;
+  currentLoad: number; // MW
+  powerFactor: number; // 0.8 - 1.0
+  currentVoltage?: number; // V
+  currentCurrent?: number; // A
+  currentPower?: number; // MW
+};
+
+export type PowerLine = {
+  id: string;
+  name: string;
+  fromNodeId: string;
+  toNodeId: string;
+  length: number; // km
+  voltage: number; // kV
+  capacity: number; // MW
+  resistance: number; // Ohm/km
+  reactance: number; // Ohm/km
+  status: LineStatus;
+  currentFlow?: number; // MW
+  powerLoss?: number; // MW
+  voltageDrop?: number; // V
+};
+
+export type PowerGrid = {
+  id: string;
+  name: string;
+  code: string;
+  region: string;
+  nodes: PowerNode[];
+  lines: PowerLine[];
+  totalCapacity: number; // MW
+  currentLoad: number; // MW
+  frequency: number; // Hz
+  systemVoltage: number; // V
+};
+
+export type NodeData = {
+  nodeId: string;
+  voltage: number; // V
+  current: number; // A
+  power: number; // MW
+  powerFactor: number;
+};
+
+export type LineData = {
+  lineId: string;
+  currentFlow: number; // MW
+  powerLoss: number; // MW
+  voltageDrop: number; // V
+};
+
+export type GridMetrics = {
+  totalGeneration: number; // MW
+  totalLoad: number; // MW
+  totalLoss: number; // MW
+  frequency: number; // Hz
+  systemVoltage: number; // V
+};
+
+export type PowerData = {
+  timestamp: string; // ISO 8601
+  gridId: string;
+  nodes: NodeData[];
+  lines: LineData[];
+  gridMetrics: GridMetrics;
+};
+
 export type SeriesPoint = {
   date: string;
   value: number;
@@ -341,5 +429,10 @@ export const api = {
     }>('/api/alerts/predictive/recompute', {
       method: 'POST',
     }),
+
+  // Power Grid
+  getPowerGridState: () => apiRequest<PowerGrid>('/api/power-grid/state'),
+  getPowerGridData: () => apiRequest<PowerData>('/api/power-grid/data'),
+  getPowerGridStatus: () => apiRequest<SimulationStatus>('/api/power-grid/status'),
 };
 
